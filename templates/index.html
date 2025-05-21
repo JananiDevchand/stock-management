@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📦 Stock Management System</h1>
+
+        <!-- Search/Filter Form -->
+        <form class="filter-form" method="GET">
+            <input type="text" name="name" placeholder="Search by name" value="{{ request.args.get('name', '') }}">
+            <input type="number" name="min_qty" placeholder="Min Qty" value="{{ request.args.get('min_qty', '') }}">
+            <input type="number" name="max_qty" placeholder="Max Qty" value="{{ request.args.get('max_qty', '') }}">
+            <input type="number" name="min_price" placeholder="Min Price" value="{{ request.args.get('min_price', '') }}">
+            <input type="number" name="max_price" placeholder="Max Price" value="{{ request.args.get('max_price', '') }}">
+            <button type="submit">Search</button>
+        </form>
+
+        <a class="add-btn" href="/add">➕ Add New Stock</a>
+        <a class="add-btn" href="/dashboard" style="background-color:#6f42c1;">📈 View Dashboard</a>
+
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Quantity</th>
+                    <th>Price (₹)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td>{{ stock.name }}</td>
+                    <td>{{ stock.quantity }}</td>
+                    <td>{{ stock.price }}</td>
+                    <td>
+                        <a class="edit-btn" href="/update/{{ stock._id }}">✏️ Edit</a>
+                        <a class="delete-btn" href="/delete/{{ stock._id }}">🗑️ Delete</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="no-data">No matching records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+                        <!-- Include Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <!-- Chart Container -->
+        <div class="chart-section">
+            <h2>📊 Inventory Charts</h2>
+            <canvas id="quantityChart"></canvas>
+            <canvas id="priceChart"></canvas>
+        </div>
+
+        <script>
+            const stockNames = {{ stock_names | tojson }};
+            const stockQuantities = {{ stock_quantities | tojson }};
+            const stockPrices = {{ stock_prices | tojson }};
+
+            // Quantity Bar Chart
+            new Chart(document.getElementById('quantityChart'), {
+                type: 'bar',
+                data: {
+                    labels: stockNames,
+                    datasets: [{
+                        label: 'Quantity',
+                        data: stockQuantities,
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Stock Quantity Overview' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Price Pie Chart
+            new Chart(document.getElementById('priceChart'), {
+                type: 'pie',
+                data: {
+                    labels: stockNames,
+                    datasets: [{
+                        label: 'Price Distribution',
+                        data: stockPrices,
+                        backgroundColor: stockNames.map(() => `hsl(${Math.random()*360}, 60%, 60%)`)
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Stock Price Distribution' }
+                    }
+                }
+            });
+        </script>
+
+    </div>
+</body>
+</html>
